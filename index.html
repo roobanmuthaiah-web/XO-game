@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Obito XO Responsive</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
+}
+
+body{
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:radial-gradient(circle at center,#1a1a2e,#0f0f1a);
+color:white;
+overflow:hidden;
+transition:background 0.2s;
+padding:20px;
+}
+
+.container{
+width:100%;
+max-width:420px;
+text-align:center;
+}
+
+h1{
+margin-bottom:10px;
+font-size:clamp(24px,5vw,36px);
+text-shadow:0 0 15px cyan;
+}
+
+.score{
+margin:10px 0;
+font-size:clamp(14px,4vw,18px);
+}
+
+.mode-select{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:10px;
+margin-bottom:10px;
+}
+
+button{
+padding:10px 20px;
+border:none;
+border-radius:25px;
+cursor:pointer;
+background:linear-gradient(45deg,#00f7ff,#ff00ff);
+color:white;
+font-size:clamp(12px,3.5vw,14px);
+transition:0.3s;
+}
+
+button:active{
+transform:scale(0.95);
+}
+
+.board{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:12px;
+width:100%;
+aspect-ratio:1/1;
+margin:15px auto;
+}
+
+.cell{
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(10px);
+border-radius:18px;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:clamp(28px,8vw,48px);
+cursor:pointer;
+transition:0.2s;
+box-shadow:0 0 12px rgba(0,255,255,0.2);
+}
+
+.cell:hover{
+box-shadow:0 0 25px cyan;
+}
+
+.win{
+background:cyan;
+color:black;
+box-shadow:0 0 35px cyan;
+}
+
+@media (max-width:400px){
+body{
+padding:10px;
+}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>X O PRO</h1>
+
+<div class="score">
+X: <span id="scoreX">0</span> |
+O: <span id="scoreO">0</span>
+</div>
+
+<div class="mode-select">
+<button onclick="startGame('single')">Single Player</button>
+<button onclick="startGame('multi')">Multiplayer</button>
+<button onclick="restartGame()">Restart</button>
+</div>
+
+<div class="board" id="board"></div>
+</div>
+
+<script>
+const board=document.getElementById("board");
+let cells=[];
+let currentPlayer="X";
+let mode="multi";
+let gameActive=false;
+let scoreX=0, scoreO=0;
+
+const winPatterns=[
+[0,1,2],[3,4,5],[6,7,8],
+[0,3,6],[1,4,7],[2,5,8],
+[0,4,8],[2,4,6]
+];
+
+function startGame(selectedMode){
+mode=selectedMode;
+gameActive=true;
+currentPlayer="X";
+createBoard();
+}
+
+function createBoard(){
+board.innerHTML="";
+cells=[];
+for(let i=0;i<9;i++){
+let cell=document.createElement("div");
+cell.classList.add("cell");
+cell.addEventListener("click",()=>handleClick(i));
+board.appendChild(cell);
+cells.push(cell);
+}
+}
+
+function handleClick(index){
+if(!gameActive || cells[index].textContent!=="") return;
+
+cells[index].textContent=currentPlayer;
+if(checkWinner()) return;
+
+currentPlayer=currentPlayer==="X"?"O":"X";
+
+if(mode==="single" && currentPlayer==="O"){
+setTimeout(()=>aiMove(),300);
+}
+}
+
+function aiMove(){
+let empty=cells.map((c,i)=>c.textContent===""?i:null).filter(v=>v!==null);
+let move=empty[Math.floor(Math.random()*empty.length)];
+cells[move].textContent="O";
+if(checkWinner()) return;
+currentPlayer="X";
+}
+
+function checkWinner(){
+for(let pattern of winPatterns){
+let[a,b,c]=pattern;
+if(cells[a].textContent &&
+cells[a].textContent===cells[b].textContent &&
+cells[a].textContent===cells[c].textContent){
+cells[a].classList.add("win");
+cells[b].classList.add("win");
+cells[c].classList.add("win");
+
+if(cells[a].textContent==="X"){
+scoreX++;
+document.getElementById("scoreX").textContent=scoreX;
+}else{
+scoreO++;
+document.getElementById("scoreO").textContent=scoreO;
+}
+
+gameActive=false;
+return true;
+}
+}
+if(cells.every(cell=>cell.textContent!=="")){
+gameActive=false;
+return true;
+}
+return false;
+}
+
+function restartGame(){
+createBoard();
+currentPlayer="X";
+gameActive=true;
+}
+</script>
+
+</body>
+</html>
